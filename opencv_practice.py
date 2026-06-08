@@ -1,9 +1,9 @@
 import cv2
 
-image = cv2.imread('bacteria_img/IMG_6227.jpg')
+image = cv2.imread('bacteria_img/SAMPLE_2.png')
 
 h,w = image.shape[:2]
-print(f"heigh: {h}, w: {w}")
+print(f"height: {h}, width: {w}")
 
 (B,G,R) = image[100,100]
 print(f"R:{R}, G:{G}, B:{B}")
@@ -19,8 +19,8 @@ roi = image[100:500,200:700]
 
 print("resize image")
 resize = cv2.resize(image,(500,500))
-#cv2.imshow("Resized Image",resize)
-#cv2.waitKey(0)
+# cv2.imshow("Resized Image",resize)
+# cv2.waitKey(0)
 
 ratio = 800/ w
 
@@ -34,7 +34,7 @@ print("Drawing a rectangle")
 output = image.copy()
 rectangle = cv2.rectangle(output,(1500,900),
                           (600,400),(255,0,0),2)
-#cv2.imshow("Image with Recatnalge",rectangle)
+# cv2.imshow("Image with Recatnalge",rectangle)
 #cv2.waitKey(0)
 
 output = image.copy()
