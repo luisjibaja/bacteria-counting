@@ -27,7 +27,7 @@ def set_file_name():
     return file_name
 
 # Image Capturing 
-cam = cv.VideoCapture(0)
+cam = cv.VideoCapture(1)
 
 while True:
     ret, frame = cam.read()
