@@ -3,14 +3,20 @@ import os
 import numpy as np
 from skimage import morphology
 
-img = cv2.imread('bacteria_img/SAMPLE_12.png')
-name = "SAMPLE_12"
+img = cv2.imread('bacteria_img/SAMPLE_13.jpg')
+name = "SAMPLE_13"
 
 # Save original
-cv2.imwrite(os.path.join('output', f"{name}_original.png"), img)
+cv2.imwrite(os.path.join('output', f"{name}_original.jpg"), img)
+
 
 # Grayscale image
 def Grayscale_image(image):
+    h,w = img.shape[:2]
+    new_width = 500
+    ratio = new_width/w
+    new_height = int(h*ratio)
+    image = cv2.resize(image, (new_width,new_height))
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (7, 7), 0)
     return gray
@@ -69,7 +75,6 @@ def clean_image(image):
     return clean
 
 clean = clean_image(masked)
-
 cv2.imshow("Cleaned Image",clean)
 cv2.waitKey(0)
 
@@ -96,7 +101,7 @@ cv2.imshow("Thresholded Image",thresholded)
 cv2.waitKey(0)
 
 x_t,y_t,r_t = detect_dish(thresholded)
-Thresholded_inner = apply_mask(thresholded,x_t,y_t,r_t-30)
+Thresholded_inner = apply_mask(thresholded,x_t,y_t,r_t-45)
 cv2.imshow("Inner Thresholded Image",Thresholded_inner)
 cv2.waitKey(0)
 
@@ -118,36 +123,4 @@ Watershed segmentation
 Count separated colonies
 """
 
-def remove_large_artifacts(binary_image, min_area=20, max_area=800, max_aspect_ratio=3):
-    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
-        binary_image,
-        connectivity=8
-    )
-
-    cleaned = np.zeros_like(binary_image)
-
-    for i in range(1, num_labels):  # skip background
-        area = stats[i, cv2.CC_STAT_AREA]
-        width = stats[i, cv2.CC_STAT_WIDTH]
-        height = stats[i, cv2.CC_STAT_HEIGHT]
-
-        if width == 0 or height == 0:
-            continue
-
-        aspect_ratio = max(width, height) / min(width, height)
-
-        if area >= min_area and area <= max_area and aspect_ratio <= max_aspect_ratio:
-            cleaned[labels == i] = 255
-
-    return cleaned
-
-artifact_removed = remove_large_artifacts(
-    Thresholded_inner,
-    min_area=20,
-    max_area=800,
-    max_aspect_ratio=3
-)
-
-cv2.imshow("Large Artifacts Removed", artifact_removed)
-cv2.waitKey(0)
 
