@@ -35,6 +35,11 @@ def detect_dish(image):
         print(f"No dish found in {name}")
 
     x, y, r = np.uint16(np.around(circles))[0][0]
+    return (x,y,r)
+
+x,y,r = detect_dish(gray)
+
+def apply_mask(image,x,y,r):
 
     # Create mask with detected circle and apply to image
     mask = np.zeros_like(image)
@@ -45,7 +50,7 @@ def detect_dish(image):
 
     return masked
 
-masked = detect_dish(gray)
+masked = apply_mask(gray,x,y,r)
 
 cv2.imshow("Masked Image",masked)
 cv2.waitKey(0)
@@ -89,3 +94,60 @@ thresholded = threshold_image(clean)
 
 cv2.imshow("Thresholded Image",thresholded)
 cv2.waitKey(0)
+
+x_t,y_t,r_t = detect_dish(thresholded)
+Thresholded_inner = apply_mask(thresholded,x_t,y_t,r_t-30)
+cv2.imshow("Inner Thresholded Image",Thresholded_inner)
+cv2.waitKey(0)
+
+"""
+Thresholded_inner
+↓
+Remove large artifacts like glare
+↓
+Distance transform
+↓
+Sure foreground
+↓
+Sure background
+↓
+Watershed markers
+↓
+Watershed segmentation
+↓
+Count separated colonies
+"""
+
+def remove_large_artifacts(binary_image, min_area=20, max_area=800, max_aspect_ratio=3):
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
+        binary_image,
+        connectivity=8
+    )
+
+    cleaned = np.zeros_like(binary_image)
+
+    for i in range(1, num_labels):  # skip background
+        area = stats[i, cv2.CC_STAT_AREA]
+        width = stats[i, cv2.CC_STAT_WIDTH]
+        height = stats[i, cv2.CC_STAT_HEIGHT]
+
+        if width == 0 or height == 0:
+            continue
+
+        aspect_ratio = max(width, height) / min(width, height)
+
+        if area >= min_area and area <= max_area and aspect_ratio <= max_aspect_ratio:
+            cleaned[labels == i] = 255
+
+    return cleaned
+
+artifact_removed = remove_large_artifacts(
+    Thresholded_inner,
+    min_area=20,
+    max_area=800,
+    max_aspect_ratio=3
+)
+
+cv2.imshow("Large Artifacts Removed", artifact_removed)
+cv2.waitKey(0)
+
